@@ -10,12 +10,23 @@ bot = telebot.TeleBot(API_KEY)
 
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
-    bot.reply_to(message, "Welcome!")
+    markup = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
+    button_merge_videos = telebot.types.KeyboardButton('Merge Videos')
+    markup.add(button_merge_videos)
+    bot.reply_to(message, "Welcome to my bot!", reply_markup=markup)
 
 
-@bot.message_handler(commands=['merge_videos'])
+@bot.message_handler(func=lambda message: True, content_types=['text'])
+def handle_text(message):
+    if message.text == 'Merge Videos':
+        bot.send_message(message.chat.id, "Please enter the links of the videos you want to merge, separated by space")
+    else:
+        bot.send_message(message.chat.id, 'Invalid command')
+
+
+@bot.message_handler(func=lambda message: True, content_types=['text'])
 def merge_videos(message):
-    urls = message.text.split()[1:]
+    urls = message.text.split()
     if len(urls) == 0:
         bot.send_message(message.chat.id, "Please provide at least one URL")
         return
@@ -40,5 +51,6 @@ def merge_videos(message):
         bot.send_video(message.chat.id, tmp, timeout=1000)
     for file in files:
         os.remove(file)
+
 
 bot.polling()
